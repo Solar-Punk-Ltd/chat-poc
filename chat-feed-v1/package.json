@@ -1,0 +1,23 @@
+{
+  "name": "chat-feed-direct",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "graffityfeed": "npx ts-node src/index.ts",
+    "graffityfeed2": "npx ts-node src/index2.ts",
+    "direct": "node src/direct.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ethersphere/bee-js": "^6.7.0",
+    "node-localstorage": "^3.0.5",
+    "zerodash": "^0.2.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "typescript": "^5.3.3"
+  }
+}
