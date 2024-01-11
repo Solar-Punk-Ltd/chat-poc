@@ -11,6 +11,7 @@ Links:
 ## direct feed chat based on graffiti feed
 
 Don't need to manually set up batchID, the script will look for it
+Works with bee 1.16.1 dev version at the moment
 
 ### enter directory
 ```cmd
