@@ -13,7 +13,7 @@ export default class ChatStream extends React.Component {
     feedReader = {}
     readInterval = 1000
     lastReadIndex = -1
-    allowRead = true
+    allowRead = false
 
     constructor(props) {
         super(props);
@@ -38,7 +38,7 @@ export default class ChatStream extends React.Component {
 
         this.lastReadIndex = parseInt(roomData.lastReadIndex || -1)
 
-        this.readMessages = this.readMessages.bind(this)
+        this.readMessagesOnLoad = this.readMessagesOnLoad.bind(this)
         this.readNextMessage = this.readNextMessage.bind(this)
         this.saveMessages = this.saveMessages.bind(this)
         this.readNewMessage = this.readNewMessage.bind(this)
@@ -60,7 +60,7 @@ export default class ChatStream extends React.Component {
     async componentDidMount() {
         window.addEventListener('readableStateChanged', this.readableStateChanged);
         this.setupFeedSettings();
-        this.readMessages();
+        this.readMessagesOnLoad();
     }
 
     readableStateChanged(event) {
@@ -126,19 +126,19 @@ export default class ChatStream extends React.Component {
         this.lastReadIndex++;
     }
 
-    async readMessages() {
-        console.log("called readMessages")
+    async readMessagesOnLoad() {
+        console.log("called readMessagesOnLoad")
 
         if (this.allowRead === false) {
-            console.log("read is not allowed")
-            setTimeout(this.readMessages, 1000)
+            console.log("read is not allowed for some reason")
+            setTimeout(this.readMessagesOnLoad, 1000)
             return
         }
 
         const isFeedRetrievable = await this.isFeedRetrievable()
         if (!isFeedRetrievable) {
             console.log("feed is not retrievable")
-            setTimeout(this.readMessages, 1000)
+            setTimeout(this.readMessagesOnLoad, 1000)
             return;
         }
 
@@ -171,7 +171,7 @@ export default class ChatStream extends React.Component {
     async readNewMessage(){
         console.log("checking for new messages")
         if (this.allowRead === false) {
-            console.log("read is not allowed")
+            console.log("read is not allowed for some reason")
             return
         }
         const feedIndex = await this.getFeedActualUpdateIndex()

@@ -58,7 +58,8 @@ export default class ChatWrite extends React.Component {
     }
 
     async componentDidMount() {
-        await this.initFeed()
+        const succeeded = await this.initFeed()
+        window.dispatchEvent(new CustomEvent('readableStateChanged', {detail: {allowRead: succeeded}}));
     }
 
     async initFeed(){
@@ -69,8 +70,7 @@ export default class ChatWrite extends React.Component {
 
         if (!successful){
             console.log("could not initFeed")
-            window.dispatchEvent(new CustomEvent('readableStateChanged', {detail: {allowRead: false}}));
-            return
+            return false
         }
 
         this.feedWriter = this.bee.makeFeedWriter('sequence', this.consensusHash, this.graffitiSigner)
@@ -80,6 +80,8 @@ export default class ChatWrite extends React.Component {
 
         const retrievable = await this.bee.isFeedRetrievable("sequence", this.graffitiSigner.address, this.consensusHash)
         this.setState({ready: retrievable})
+
+        return retrievable
     }
 
     async checkOrCreateFeed() {
@@ -120,7 +122,7 @@ export default class ChatWrite extends React.Component {
 
     handleSubmit = async (event) => {
         if (this.state.ready === false) {
-            window.alert("Feed not ready yet")
+            window.alert("Feed is not ready yet or another message's sending is in progress")
             return
         }
         if (this.state.message.trim() === '') {
@@ -128,11 +130,15 @@ export default class ChatWrite extends React.Component {
             return
         }
 
+        const sendMessage = this.state.message;
+        this.setState({message: '', ready: false})
+
         try {
-            await this.uploadMessageToFeed(this.state.message)
-            this.setState({message: ''})
+            await this.uploadMessageToFeed(sendMessage)
+            this.setState({ready: true})
         } catch (e) {
             console.log(e)
+            this.setState({ready: true})
         }
 
         event.preventDefault();
