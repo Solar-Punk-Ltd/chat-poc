@@ -42,6 +42,4 @@ echo "PSS_PUBLIC_KEY FOR NODE_1: $PSS_PUBLIC_KEY"
 
 # Send a message to node_1 from queen node
 set -x
-curl -H "Swarm-Postage-Batch-Id: $STAMP" \
-    -XPOST "localhost:$QUEEN_PORT/pss/send/test1/$PEER" \
-   --data "Hello Bee $(date +"%Y-%m-%d %H:%M:%S")"
+curl -H "Swarm-Postage-Batch-Id: $STAMP" -XPOST "http://localhost:$QUEEN_PORT/pss/send/test/$PEER?recipient=$PSS_PUBLIC_KEY" --data "Hello Bee $(date +"%Y-%m-%d %H:%M:%S")"
