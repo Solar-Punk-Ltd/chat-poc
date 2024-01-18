@@ -1,0 +1,23 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/feed-chat-webapp/node_modules
+/feed-chat-webapp/.pnp
+/feed-chat-webapp/.pnp.js
+
+# testing
+/feed-chat-webapp/coverage
+
+# production
+/feed-chat-webapp/build
+
+# misc
+/feed-chat-webapp/.DS_Store
+/feed-chat-webapp/.env.local
+/feed-chat-webapp/.env.development.local
+/feed-chat-webapp/.env.test.local
+/feed-chat-webapp/.env.production.local
+
+/feed-chat-webapp/npm-debug.log*
+/feed-chat-webapp/yarn-debug.log*
+/feed-chat-webapp/yarn-error.log*
