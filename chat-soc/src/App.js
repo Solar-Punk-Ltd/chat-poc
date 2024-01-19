@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bee, Utils } from '@ethersphere/bee-js';
 import './App.css';
+import { toast } from 'react-toastify';
 const STAMP = "733976cce45c4164ccfc3dda44d2c664256e90cadd808e57cdc63ffcfbe1bc1e"
 //dev"b6a0a89edaf33580f9811a868eb5d8cbad400989110d9f10a7d2dfea0dfb688a";
 
@@ -16,6 +17,7 @@ function App() {
   });
   const [newMessage, setNewMessage] = useState("");                   // New message to be sent
   const [bee, setBee] = useState(null);                               // Bee instance
+  const [buttonActive, setButtonActive] = useState(true);             // Deactivate button, while loading
 
   useEffect(() => {
     loader();
@@ -31,6 +33,11 @@ function App() {
       const tempBee = new Bee('http://195.88.57.155:1633', signer);
       setBee(tempBee);
 
+      const rec = localStorage.getItem('recipient');
+      const convID = localStorage.getItem('conversationID');
+      if (rec) setRecipientAddress(rec);
+      if (convID) setConversationID(convID);
+
     } catch (error) {
       console.error("There was an error while connecting to Metamask: ", error);
     }
@@ -43,18 +50,60 @@ function App() {
   }
 
   async function sendMessage() {
-    const message = {
-      text: newMessage,
-      timestamp: Date.now()
-    }
+    setButtonActive(false);
+    const sendMessagePromise = new Promise(async function(resolve, reject) {
+      const message = {
+        text: newMessage,
+        timestamp: Date.now()
+      }
+  
+      const result = await bee.setJsonFeed(STAMP, conversationID, message, { signer: signer, type: 'sequence' } );
+      console.log("Result: ", result)
+  
+      localStorage.setItem('recipient', recipientAddress);
+      localStorage.setItem('conversationID', conversationID);
 
-    const result = await bee.setJsonFeed(STAMP, conversationID, message, { signer: signer, type: 'sequence' } );
-    console.log("Result: ", result)
+      setButtonActive(true);
+      if (result) resolve();
+      else reject();
+    });
+
+    toast.promise(
+      sendMessagePromise,
+      {
+        pending: "Waiting...",
+        success: "Done.",
+        error: "Error."
+      }
+    );
   }
 
   async function readFeed() {
-    const data = await bee.getJsonFeed(conversationID, { address: recipientAddress });
-    setLastMessage(data)
+    setButtonActive(false);
+    const readFeedPromise = new Promise(async function(resolve, reject) {
+      try {
+        const data = await bee.getJsonFeed(conversationID, { address: recipientAddress });
+        setLastMessage(data);
+        setButtonActive(true);
+        resolve();
+      } catch (error) {
+        console.error("There was an error while trying to read the last message. Either the conversation name, or the address is wrong.");
+        reject({error: "Read failed. Either the conversation name, or the address is wrong."});
+      }
+    });
+
+    toast.promise(
+      readFeedPromise,
+      {
+        pending: "Reading last message...",
+        success: "Last message was read",
+        error: {
+          render({data}) {
+            return `${data.error}`
+          }
+        }
+      }
+    );
   }
 
 
@@ -77,7 +126,7 @@ function App() {
           onChange={(e) => setConversationID(e.target.value)}
         />
       </p>
-      <button onClick={readFeed}>Read</button>
+      <button disabled={!buttonActive} onClick={readFeed}>Read</button>
 
       <p>Received Message:</p>
       <p>{lastMessage.text}</p>
@@ -89,7 +138,7 @@ function App() {
           onChange={(e) => setNewMessage(e.target.value)}
         />
       </p>
-      <button onClick={sendMessage}>Send</button>
+      <button disabled={!buttonActive} onClick={sendMessage}>Send</button>
 
     </div>
   );
