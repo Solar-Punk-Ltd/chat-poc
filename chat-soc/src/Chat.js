@@ -9,8 +9,8 @@ const NODE_ADDRESS = "http://195.88.57.155";
 
 
 export default function Chat() {
-  const [convInput, setConvInput] = useState("");                     // This is just the html input, not considered ready value
-  const [recInput, setRecInput] = useState("");                       // This is just the html input, not considered ready value
+  const [convInput, setConvInput] = useState(localStorage.getItem('conversationID'));                // This is just the html input, not considered ready value
+  const [recInput, setRecInput] = useState(localStorage.getItem('recipient'));                       // This is just the html input, not considered ready value
   const [conversationID, setConversationID] = useState("");           // This will be hashed to create the 'topic'
   const [recipientAddress, setRecipientAddress] = useState("");       // Address of the other person
   const [ourAddress, setOurAddress] = useState("");                   // Our Ethereum address
