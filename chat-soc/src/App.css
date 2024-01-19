@@ -1,3 +1,7 @@
+p {
+  margin: 0;
+}
+
 .App {
   text-align: center;
 }
@@ -39,12 +43,13 @@
 
 #messageList {
   list-style-type: none;
+  padding-left: 0;
 }
 
 .singleMessage {
   display: flex;
   border-radius: 4px;
-  padding: 4px;
+  padding: 16px;
   margin-top: 2px;
   margin-bottom: 2px;
 }
@@ -67,4 +72,52 @@
 
 .secondParticipant {
   background-color: #000088;
+}
+
+#chatApp {
+  display: grid; 
+  grid-template-rows: 80% 20%;
+  height: 100vh;
+}
+
+#chatControls {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: #333333;
+  color: #f2f2f2;
+  font-weight: bolder;
+}
+
+#addresses {
+  width: 100%;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.textInput {
+  min-width: 25vw;
+  text-align: center;
+  color: #e47200;
+}
+
+#conversationSettings {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
+  
+}
+
+#sendMessageLine {
+  width: 100%;
+  display: flex;
+}
+
+.flexGrow {
+  flex-grow: 1;
+}
+
+.messageToSend {
+  color: #be5300;
 }

@@ -7,9 +7,7 @@ export default function History() {
   const [conversationID, setConversationID] = useState("");           // This will be hashed to create the 'topic'
   const [recipientAddress, setRecipientAddress] = useState("");       // Address of the other person
   const [ourAddress, setOurAddress] = useState("");                   // Our Ethereum address
-  const [signer, setSigner] = useState(null);                         // Signer that we will use to send new messages
   const [allMessages, setAllMessages] = useState([]);                 // All the messages
-  const [newMessage, setNewMessage] = useState("");                   // New message to be sent
   const [bee, setBee] = useState(null);                               // Bee instance
   const [buttonActive, setButtonActive] = useState(true);             // Deactivate button, while loading
 
@@ -22,7 +20,6 @@ export default function History() {
       if (!window.ethereum) throw "You don't have Metamask!";
 
       const signer = await Utils.makeEthereumWalletSigner(window.ethereum);
-      setSigner(signer);
       setOurAddress(`0x${toHexString(signer.address)}`);
       const tempBee = new Bee('http://195.88.57.155:1633', signer);
       setBee(tempBee);

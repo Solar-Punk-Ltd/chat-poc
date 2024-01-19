@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import History from './History';
+import Chat from './Chat';
 import reportWebVitals from './reportWebVitals';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -15,6 +16,9 @@ const router = createBrowserRouter([
   }, {
     path: 'history',
     element: <History />
+  }, {
+    path: 'chat',
+    element: <Chat />
   }
 ]);
 
