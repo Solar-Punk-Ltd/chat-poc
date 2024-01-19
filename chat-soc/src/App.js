@@ -25,7 +25,7 @@ function App() {
 
   async function loader() {
     try {
-      if (!window.ethereum) throw "You don't have Metamask!";
+      if (!window.ethereum) throw Error("You don't have Metamask!");
 
       const signer = await Utils.makeEthereumWalletSigner(window.ethereum);
       setSigner(signer);

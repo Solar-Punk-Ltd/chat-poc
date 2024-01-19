@@ -17,7 +17,7 @@ export default function History() {
 
   async function loader() {
     try {
-      if (!window.ethereum) throw "You don't have Metamask!";
+      if (!window.ethereum) throw Error("You don't have Metamask!");
 
       const signer = await Utils.makeEthereumWalletSigner(window.ethereum);
       setOurAddress(`0x${toHexString(signer.address)}`);
@@ -52,10 +52,10 @@ export default function History() {
         if (ourIndex === -1 || recipientIndex === -1) {
           if (ourIndex === -1 && recipientIndex === -1) {
             // Wrong topic
-            throw "Most likely the conversation name is not correct.";
+            throw Error("Most likely the conversation name is not correct.");
           } else {
             // Wrong address
-            throw "Most likely the address is not correct.";
+            throw Error("Most likely the address is not correct.");
           }
         }
         const ourList = [];

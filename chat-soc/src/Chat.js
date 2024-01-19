@@ -2,21 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Bee, Utils } from '@ethersphere/bee-js';
 import './App.css';
 import { toast } from 'react-toastify';
+import { debounce } from 'lodash';
 const STAMP = "733976cce45c4164ccfc3dda44d2c664256e90cadd808e57cdc63ffcfbe1bc1e"
 //dev"b6a0a89edaf33580f9811a868eb5d8cbad400989110d9f10a7d2dfea0dfb688a";
 const NODE_ADDRESS = "http://195.88.57.155";
 
 
 export default function Chat() {
+  const [convInput, setConvInput] = useState("");                     // This is just the html input, not considered ready value
+  const [recInput, setRecInput] = useState("");                       // This is just the html input, not considered ready value
   const [conversationID, setConversationID] = useState("");           // This will be hashed to create the 'topic'
   const [recipientAddress, setRecipientAddress] = useState("");       // Address of the other person
   const [ourAddress, setOurAddress] = useState("");                   // Our Ethereum address
   const [signer, setSigner] = useState(null);                         // Signer that we will use to send new messages
   const [allMessages, setAllMessages] = useState([]);                 // All the messages
   const [newMessage, setNewMessage] = useState("");                   // New message to be sent
-  //const [bee, setBee] = useState(null);                               // Bee instance
   const [buttonActive, setButtonActive] = useState(true);             // Deactivate button, while loading
-  const [lastRefresh, setLastRefresh] = useState(null);                // Last refresh, unix timestamp
+  const [lastRefresh, setLastRefresh] = useState(null);               // Last refresh, unix timestamp
   const [elapsedSeconds, setElapsedSeconds] = useState("loading..."); // "loading..." or a number, in seconds
 
   useEffect(() => {
@@ -24,39 +26,37 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
+    setAllMessages([]);
+    setElapsedSeconds("loading...");
     if (ourAddress.length > 0) {
-      console.log("ourAddress: ", ourAddress)
-      const intervalId = setInterval(readMessages, 2000);
-      return () => {
-        clearInterval(intervalId);
-        
-      }
+      readMessages();
+      const intervalId = setInterval(readMessages, 9000);
+      return () => clearInterval(intervalId);
     }
-  }, [ourAddress]);
+  }, [ourAddress, conversationID, recipientAddress]);
 
   useEffect(() => {
     if (allMessages.length > 0) {
       calculateSeconds()
       const refreshIntervalId = setInterval(calculateSeconds, 900);
-      clearInterval(refreshIntervalId);
+      return () => clearInterval(refreshIntervalId);
     }
   }, [allMessages]);
 
   async function loader() {
     try {
-      if (!window.ethereum) throw "You don't have Metamask!";
+      if (!window.ethereum) throw Error("You don't have Metamask!");
 
       const signer = await Utils.makeEthereumWalletSigner(window.ethereum);
       setSigner(signer);
-      console.log("Signer: ", signer)
       setOurAddress(`0x${toHexString(signer.address)}`);
-      //setBee(tempBee);
       readMessages();
 
       const rec = localStorage.getItem('recipient');
       const convID = localStorage.getItem('conversationID');
       if (rec) setRecipientAddress(rec);
       if (convID) setConversationID(convID);
+
     } catch (error) {
       console.error("There was an error while connecting to Metamask: ", error);
     }
@@ -80,8 +80,8 @@ export default function Chat() {
       const result = await bee.setJsonFeed(STAMP, conversationID, message, { signer: signer, type: 'sequence' } );
       console.log("Result: ", result)
   
-      localStorage.setItem('recipient', recipientAddress);
-      localStorage.setItem('conversationID', conversationID);
+      //localStorage.setItem('recipient', recipientAddress);
+      //localStorage.setItem('conversationID', conversationID);
 
       setButtonActive(true);
       if (result) resolve();
@@ -91,7 +91,7 @@ export default function Chat() {
     toast.promise(
       sendMessagePromise,
       {
-        pending: "Waiting...",
+        pending: "Sending message...",
         success: "Done.",
         error: "Error."
       }
@@ -100,32 +100,38 @@ export default function Chat() {
 
   async function readMessages() {
     if (!buttonActive || ourAddress.length == 0 || recipientAddress.length == 0) { 
-      return; 
+      return; // Going forward without these values would cause error
     };
-    //setButtonActive(false);
     
     try {
       const bee = new Bee(`${NODE_ADDRESS}:1633`, signer);
       const topic = bee.makeFeedTopic(conversationID);
+      console.log("Conversation: ", conversationID)
       const ourReader = bee.makeFeedReader('sequence', topic, ourAddress);
       const recipientReader = bee.makeFeedReader('sequence', topic, recipientAddress);
-      const ourIndex = await getIndex(topic, ourAddress);
-      const recipientIndex = await getIndex(topic, recipientAddress);
+      let ourIndex = await getIndex(topic, ourAddress);
+      let recipientIndex = await getIndex(topic, recipientAddress);
       if (ourIndex === -1 || recipientIndex === -1) {
         if (ourIndex === -1 && recipientIndex === -1) {
           // Wrong topic
-          throw "Most likely the conversation name is not correct.";
+          setElapsedSeconds("Empty conversation");
+          setLastRefresh(new Date());
+          return;
+          //throw Error("Most likely the conversation name is not correct.");
         } else {
           // Wrong address
-          throw "Most likely the address is not correct.";
+          setElapsedSeconds("No message from recipient");
+          //setLastRefresh(new Date());
+          //return;
+          //throw Error("Most likely the address is not correct.");
         }
       }
       const ourList = [];
       const recipientList = [];
       const textEncoder = new TextDecoder();
   
-      localStorage.setItem('recipient', recipientAddress);
-      localStorage.setItem('conversationID', conversationID);
+      //localStorage.setItem('recipient', recipientAddress);
+      //localStorage.setItem('conversationID', conversationID);
       
       // Read our feed
       for (let i = 0; i <= ourIndex; i++) {
@@ -147,25 +153,18 @@ export default function Chat() {
           recipientList.push(resultObj);
       }
   
-  
       // Unify the 2 lists, pay attention to timestamps!
-      console.log("ourList: ", ourList)  
-      console.log("recipientList: ", recipientList)
-  
       const sortedAll = [...ourList, ...recipientList].sort((messageA, messageB) => {
         return messageA.timestamp - messageB.timestamp
       });
       setAllMessages(sortedAll);
-      setButtonActive(true);
       console.log("Final list: ", sortedAll); 
       const tstamp = new Date();
-      console.log("Timestamp", tstamp)
       setLastRefresh(tstamp);
       //resolve();
     } catch (error) {
       console.error("There was an error while trying to fetch the messages: ", error);
-      //setButtonActive(true);
-      //reject({error: `Error reading messages: ${error}`});
+      toast.error("Error reading messages: ", error)
     }
 
   }
@@ -175,7 +174,6 @@ export default function Chat() {
       const bee = new Bee(`${NODE_ADDRESS}:1633`, signer);
       const indexReader = bee.makeFeedReader('sequence', theTopic, theAddress);
       const result = await indexReader.download();
-      console.log("RESULT: ", result)
       return Number(result.feedIndex);
     } catch (error) {
       console.error("There was an error while fetching index, probably this feed does not exist: ", error);
@@ -184,24 +182,22 @@ export default function Chat() {
   }
 
   function calculateSeconds() {
-    console.log("lastRefresh: ", lastRefresh)
-    if (!lastRefresh) {
-      return;
-    }
+    if (!lastRefresh) return;
+
     const currentTime = new Date();
-    const seconds = currentTime - lastRefresh;
+    const seconds = Math.floor((currentTime - lastRefresh)/1000);
     setElapsedSeconds(seconds + " seconds ago");
   }
 
-  function changeConvId(e) {
-    setConversationID(e.target.value);
-    localStorage.setItem('conversationID', e.target.value);
-  }
-
-  function changeRecipient(e) {
-    setRecipientAddress(e.target.value);
-    localStorage.setItem('recipient', e.target.value);
-  }
+  const debouncedChangeConvId = debounce((value) => {
+    setConversationID(value);
+    localStorage.setItem('conversationID', value);
+  }, 1200);
+  
+  const debouncedChangeRecipient = debounce((value) => {
+    setRecipientAddress(value);
+    localStorage.setItem('recipient', value);
+  }, 1200);
 
 
   return (
@@ -227,9 +223,12 @@ export default function Chat() {
             <input 
               type={'text'} 
               placeholder={"Copy address here"}
-              value={recipientAddress}
+              value={recInput}
               className="textInput"
-              onChange={(e) => changeRecipient(e)}
+              onChange={(e) => {
+                setRecInput(e.target.value);
+                debouncedChangeRecipient(e.target.value);
+              }}
             />
           </p>
         </div>
@@ -239,8 +238,11 @@ export default function Chat() {
             type={'text'} 
             placeholder={"topic-42"} 
             className="textInput"
-            value={conversationID} 
-            onChange={(e) => changeConvId(e)}
+            value={convInput} 
+            onChange={(e) => {
+              setConvInput(e.target.value);
+              debouncedChangeConvId(e.target.value);
+            }}
           />
           </p>
           <p>
