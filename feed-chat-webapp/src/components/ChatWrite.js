@@ -55,6 +55,13 @@ export default class ChatWrite extends React.Component {
         }
 
         this.consensusHash = Utils.keccak256Hash(this.roomData.id)
+
+        this.handleSubmit = this.handleSubmit.bind(this)
+        this.uploadMessageToFeed= this.uploadMessageToFeed.bind(this)
+        this.initFeed = this.initFeed.bind(this)
+        this.uploadMessageToBee= this.uploadMessageToBee.bind(this)
+        this.checkOrCreateFeed= this.checkOrCreateFeed.bind(this)
+        this.handleInputChange= this.handleInputChange.bind(this)
     }
 
     async componentDidMount() {
@@ -117,7 +124,8 @@ export default class ChatWrite extends React.Component {
         const reference = await this.uploadMessageToBee(message)
         console.log("uploaded message: " + message, "reference: " + reference.reference)
 
-        return await this.feedWriter.upload(this.state.postageBatchID, reference.reference)
+        const feedReference = await this.feedWriter.upload(this.state.postageBatchID, reference.reference)
+        return feedReference
     }
 
     handleSubmit = async (event) => {
