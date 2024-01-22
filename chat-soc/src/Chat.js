@@ -84,7 +84,10 @@ export default function Chat() {
       //localStorage.setItem('conversationID', conversationID);
 
       setButtonActive(true);
-      if (result) resolve();
+      if (result) {
+        resolve();
+        setNewMessage("");
+      }
       else reject();
     });
 
@@ -116,11 +119,13 @@ export default function Chat() {
           // Wrong topic
           setElapsedSeconds("Empty conversation");
           setLastRefresh(new Date());
+          setAllMessages([]);
           return;
           //throw Error("Most likely the conversation name is not correct.");
         } else {
           // Wrong address
           setElapsedSeconds("No message from recipient");
+          setAllMessages([]);
           //setLastRefresh(new Date());
           //return;
           //throw Error("Most likely the address is not correct.");
@@ -255,10 +260,15 @@ export default function Chat() {
             className="flexGrow messageToSend"
             onChange={(e) => setNewMessage(e.target.value)}
           />
-          <button disabled={!buttonActive} onClick={sendMessage}>Send</button>
+          <button 
+            disabled={!buttonActive} 
+            onClick={sendMessage}
+            className="actionButton"
+          >
+            {"Send"}
+          </button>
         </div>
       </div>
-          <button disabled={!buttonActive} onClick={readMessages}>Read</button>
     </div>
   )
 }

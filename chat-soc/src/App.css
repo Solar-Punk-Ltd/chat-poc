@@ -41,6 +41,10 @@ p {
   }
 }
 
+#messageBox {
+  overflow: scroll;
+}
+
 #messageList {
   list-style-type: none;
   padding-left: 0;
@@ -120,4 +124,21 @@ p {
 
 .messageToSend {
   color: #be5300;
+}
+
+.actionButton {
+  border-radius: 4px;
+  width: 8vw;
+  font-size: larger;
+  border: none;
+  background-color: #e47200;
+  color: #f2f2f2;
+  margin-left: 8px;
+}
+.actionButton:hover {
+  background-color: #d46200;
+  color: yellow;
+}
+.actionButton:active {
+  font-weight: bolder;
 }
