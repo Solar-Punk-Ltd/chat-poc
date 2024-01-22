@@ -30,8 +30,8 @@ bee_node "$NODE_4_DEBUG_PORT"
 # Purchasing postage stamp
 STAMP=$(swarm-cli stamp buy --yes --depth 24 --amount 100000000 | grep "Stamp ID:" | cut -d " " -f 3)
 
-# Retrieve the peer address of node_1
-PEER=$(curl -s "localhost:$NODE_1_DEBUG_PORT/peers" | jq -r '.peers[0].address' | cut -c 1-6)
+# Retrieve the peer address of node_1 and use the first 4 characters as the peer ids
+PEER=$(curl -s "localhost:$NODE_1_DEBUG_PORT/peers" | jq -r '.peers[0].address' | cut -c 1-4)
 
 # Retrieve the PSS public key of node_1
 PSS_PUBLIC_KEY=$(curl -s "localhost:$NODE_1_DEBUG_PORT/addresses" | jq -r '.pssPublicKey')
