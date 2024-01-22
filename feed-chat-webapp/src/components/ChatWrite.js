@@ -19,20 +19,29 @@ export default class ChatWrite extends React.Component {
         'Vivamus sapien eros, scelerisque et tellus quis, finibus hendrerit dui.',
         'Nulla vel ex ac tellus congue iaculis quis in nunc. Mauris eget massa vitae est placerat blandit.'
     ]
+    state = {
+        message: '',
+        hash: this.props.hash,
+        room: '',
+        id: '',
+        postageBatchID: '',
+        ready: false, //should start with false and rerender on succeeded retrieval
+    }
 
     constructor(props) {
         super(props);
-        this.state = {
-            message: '',
-            hash: this.props.hash,
-            room: '',
-            id: '',
-            postageBatchID: '',
-            ready: false, //should start with false and rerender on succeeded retrieval
-        };
 
-        this.bee = new Bee('http://localhost:1633')
+        this.handleSubmit = this.handleSubmit.bind(this)
+        this.uploadMessageToFeed= this.uploadMessageToFeed.bind(this)
+        this.initFeed = this.initFeed.bind(this)
+        this.uploadMessageToBee= this.uploadMessageToBee.bind(this)
+        this.checkOrCreateFeed= this.checkOrCreateFeed.bind(this)
+        this.handleInputChange= this.handleInputChange.bind(this)
+        this.setupFeedSettings= this.setupFeedSettings.bind(this)
+    }
 
+    async componentDidMount() {
+        console.log(this.state)
         let chats = JSON.parse(localStorage.getItem('chats') || '[]');
         const chatIndex = chats.findIndex((chat) => chat.hash === this.state.hash);
         if (chatIndex === -1) {
@@ -44,6 +53,13 @@ export default class ChatWrite extends React.Component {
         this.state.id = this.roomData.id
         this.state.postageBatchID = this.roomData.postageBatchID;
 
+        this.setupFeedSettings();
+        const succeeded = await this.initFeed()
+        window.dispatchEvent(new CustomEvent('readableStateChanged', {detail: {allowRead: succeeded}}));
+    }
+
+    setupFeedSettings() {
+        this.bee = new Bee('http://localhost:1633')
         this.graffitiSignerPk = getConsensualPrivateKey(this.state.room)
         this.graffitiFeedWallet = getGraffitiWallet(this.graffitiSignerPk);
 
@@ -55,18 +71,6 @@ export default class ChatWrite extends React.Component {
         }
 
         this.consensusHash = Utils.keccak256Hash(this.roomData.id)
-
-        this.handleSubmit = this.handleSubmit.bind(this)
-        this.uploadMessageToFeed= this.uploadMessageToFeed.bind(this)
-        this.initFeed = this.initFeed.bind(this)
-        this.uploadMessageToBee= this.uploadMessageToBee.bind(this)
-        this.checkOrCreateFeed= this.checkOrCreateFeed.bind(this)
-        this.handleInputChange= this.handleInputChange.bind(this)
-    }
-
-    async componentDidMount() {
-        const succeeded = await this.initFeed()
-        window.dispatchEvent(new CustomEvent('readableStateChanged', {detail: {allowRead: succeeded}}));
     }
 
     async initFeed(){

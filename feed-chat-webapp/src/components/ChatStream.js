@@ -14,6 +14,13 @@ export default class ChatStream extends React.Component {
     readInterval = 1000
     lastReadIndex = -1
     allowRead = false
+    state = {
+        messages: [],
+        hash: this.props.hash,
+        id: '',
+        room: '',
+        postageBatchID: '',
+    }
 
     constructor(props) {
         super(props);
@@ -26,16 +33,12 @@ export default class ChatStream extends React.Component {
 
         const roomData = chats[chatIndex];
         let messages = JSON.parse(localStorage.getItem('messages') || '{}');
-        const roomMessages = messages[this.props.hash];
+        const roomMessages = messages[this.state.hash];
 
-        this.state = {
-            hash: this.props.hash,
-            messages: roomMessages || [],
-            id: roomData.id || '',
-            room: roomData.room || '',
-            postageBatchID: roomData.postageBatchID || '',
-        };
-
+        this.state.messages = roomMessages || []
+        this.state.id = roomData.id || ''
+        this.state.room = roomData.room || ''
+        this.state.postageBatchID = roomData.postageBatchID || ''
         this.lastReadIndex = parseInt(roomData.lastReadIndex || -1)
 
         this.readMessagesOnLoad = this.readMessagesOnLoad.bind(this)
@@ -60,7 +63,7 @@ export default class ChatStream extends React.Component {
     async componentDidMount() {
         window.addEventListener('readableStateChanged', this.readableStateChanged);
         this.setupFeedSettings();
-        this.readMessagesOnLoad();
+        await this.readMessagesOnLoad();
     }
 
     readableStateChanged(event) {
@@ -183,8 +186,9 @@ export default class ChatStream extends React.Component {
     }
 
     render() {
+        console.log(this.state.messages);
         return (
-            <Container key={sha256(JSON.stringify(this.state.messages))} style={{
+            <Container key={sha256(JSON.stringify(this.state.room+this.state.id))} style={{
                 "display": "flex",
                 "flexDirection": "column-reverse",
                 "alignItems": "stretch",
