@@ -54,7 +54,14 @@ cd pss-fdp-play
 
 ### Running the Test Network and Sending a Message
 
-> __Important Note:__ The message sending process might take some time, and it may not always succeed immediately. Please be patient and allow several minutes for the message to be processed. If the message delivery fails, consider retrying after a brief period.
+> __Important Note:__ The message sending process might take some time, especially when the peer address prefix is too long. For instance, even with a 3-byte prefix, delays can occur. The PSS message acts as a Trojan chunk, carefully constructed to ensure that the content hash matches the number of bytes used in the peer address. This process - "mining," can be time-consuming, especially under heavy CPU load. Using a two-byte peer address prefix results in almost instantaneous content hash generation.
+
+```bash
+# Retrieve the peer address of node_1 and use the first 4 characters (2 byte) as the peer ids
+PEER=$(curl -s "localhost:$NODE_1_DEBUG_PORT/peers" | jq -r '.peers[0].address' | cut -c 1-4)
+...
+/pss/send/test/$PEER
+```
 
 In a terminal, run start.sh. While the script is running, it will display progress updates, including a notification when it is in the process of _"buying postage stamp"_. At this point, you can proceed to start monitoring the WebSocket.
 
